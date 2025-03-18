@@ -429,7 +429,7 @@ clpfwctrl --add
 
 ## Upgrading EXPRESSCLUSTER
 
-The following steps are the nutshell for Security Center users who upgrade EXPRESSCLUSTER from **3.3** to **5.2**.
+The following are simplified steps for Security Center users upgrading EXPRESSCLUSTER from **3** to **5**.
 
 The official upgrade procedures are described [here](https://docs.nec.co.jp/software/clustering/expresscluster_x/x52/ecx_x52_windows_en/W52_IG_EN/W_IG.html#upgrading-expresscluster-server-from-the-previous-version).
 
@@ -437,43 +437,40 @@ The official upgrade procedures are described [here](https://docs.nec.co.jp/soft
 
 - EXPRESSCLUSTER X 5 obsoletes *armload*/*armkill* commands.
 
-  If you have been using a *script resource* which contains *armload*/*armkill* command in the *start.bat*/*stop.bat* for controlling three services of *Genetec™ Server*, *Genetec Watchdog* and *SQL Server* services, you need to replace the *script resource* into three *service resources*.
+  If a *script resource* contains *armload*/*armkill* commands in its *start.bat*/*stop.bat*, replace the *script resource* to *service resources*.
+  This applies to control *Genetec™ Server*, *Genetec Watchdog* and *SQL Server* services
 
-- EXPRESSCLUSTER X 4 requires a Cluster partition of 1 GB for a *Mirror disk* resource. EXPRESSCLUSTER X 3 required 17 MB.
+- EXPRESSCLUSTER X 4 requires **1 GB** for a Cluster partition of *Mirror disk* resource. EXPRESSCLUSTER X 3 required **17 MB**.
 
-  If you have been using the Cluster partition having the size less than 1 GB, extend it to 1 GB (or more) or prepare new.
+  If the Cluster partition has the size less than 1 GB, extend it to 1 GB (or more) or prepare new.
 
 ### Steps
 
-1. On the server having EXPRESSCLUSTER X 3, open EXPRESSCLUSTER *WebManager* and save the existing configuration.
+In the following steps, EXPRESSCLUSTE X is abbreviated as ECX.
 
-   the file *clp.conf* and folder *scripts* are extracted.
+1. Open ECX 3 WebManager > Change `Operation Mode` to `Config Mode` > `File` menu > `Export` to save the cluster configuration data.
 
-2. Upgrade EXPRESSCLUSTER.
+   The file *clp.conf* and folder *scripts* are saved.
 
-   Uninstall the old and install new one.
-
-3. Prepare/Confirm the *Cluster Partition* to have **1 GB** or more size.
-
-4. Open cmd.exe, convert the configuration files.
+2. Uninstall ECX 3.
+3. Install ECX 5.
+4. Prepare/Confirm the *Cluster Partition* to have **1 GB** or more size.
+5. Open cmd.exe > Convert the configuration files > Zip them into *cf.zip*.
 
    ```bat
+   cd THE-FOLDER-CONTAINS-CLUSTER-CONFIGURATION-FILE
    clpcfconv.bat -i .
+   powershell Compress-Archive .\clp.conf,scripts cf
    ```
 
-5. Zip the configuration files into *conf.zip*.
+6. Open ECX WebUI `http://localhost:29003` > Import *cf.zip*.
+7. Edit the *Resource Properties* of the *Mirror disk* resource to correct the drive letter for *Cluster Partition* if you changed the drive letter in the previous step.
+8. Delete the script resource which has armload/armkill in its start.bat/stop.bat.
+9. Add the service resources for *Genetec Server*, *Genetec Watchdog*, and *SQL Server* services.
 
-   ```ps1
-   powershell Compress-Archive .\clp.conf,scripts conf
-   ```
+   *Important*: Configure the dependency described [here](#creating-the-cluster).
 
-6. Open EXPRESSCLUSTER *WebUI* and import *conf.zip*.
-
-7. Delete the script resource and add the service resources for *Genetec™ Server*, *Genetec Watchdog* and *SQL Server* services if required. Note about the dependency described [here](#creating-the-cluster).
-
-8. Change the *Cluster Partition Drive Letter* in the *Resource Properties* of the *Mirror disk* resource if you changed the drive letter for Cluster Partition at the previous step.
-
-9. Apply the configuration, and start the cluster.
+10. Apply the configuration, then start the cluster.
 
 ## Legal notice
 
